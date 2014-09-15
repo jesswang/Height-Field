@@ -60,13 +60,20 @@ void myinit()
 {
     /* setup gl view here */
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glEnable(GL_DEPTH_TEST);            // enable depth buffering
+    glViewport(0, 0, 840, 480);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    double aspectRatio = (double)glutGet( GLUT_WINDOW_WIDTH )/glutGet( GLUT_WINDOW_HEIGHT );
-    glOrtho(aspectRatio,- aspectRatio, -1.0, 1.0, 1.0, -1.0);
+    //double aspectRatio = (double)glutGet( GLUT_WINDOW_WIDTH )/glutGet( GLUT_WINDOW_HEIGHT );
+    //glOrtho(-aspectRatio, aspectRatio, -1.0, 1.0, -1.0, 1.0); // prevents square in starter code from stretching out
+    //glFrustum(0.0, 1.0, 0.0, 1.0, 0.01, 1000.0);
+    gluPerspective(10.0, 640.0/480.0, 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
+    //glPointSize(6.0);
+    //glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_DEPTH_TEST);            // enable depth buffering
+
 }
 
 void display()
@@ -76,15 +83,15 @@ void display()
     /* you may also want to precede it with your
      rotation/translation/scaling */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBegin(GL_POLYGON);
-    
+    glBegin(GL_POINTS);
     for (int i = 0; i < g_pHeightData->nx; ++i) {
         for (int j = 0; j < g_pHeightData->ny; ++j) {
-            int ch = PIC_PIXEL(g_pHeightData, i, j, 0);
-            glVertex3f(i, j, PIC_PIXEL(g_pHeightData, i, j, 0));
+            int ch = PIC_PIXEL(g_pHeightData, i, j, 0) - 256; // z-axis value must be negative to fit in viewing volume
+            glVertex3i(i, j, ch);
         }
     }
-    /*glVertex3f(-0.5, -0.5, 0.0);
+    /*glBegin(GL_POLYGON);
+    glVertex3f(-0.5, -0.5, 0.0);
     glColor3f(0.0, 0.0, 1.0);
     glVertex3f(-0.5, 0.5, 0.0);
     glColor3f(0.0, 0.0, 0.0);
