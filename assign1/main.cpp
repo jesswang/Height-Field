@@ -18,8 +18,10 @@ int g_iMiddleMouseButton = 0;
 int g_iRightMouseButton = 0;
 
 typedef enum { ROTATE, TRANSLATE, SCALE } CONTROLSTATE;
+typedef enum { POINTS, LINES, TRIANGLES } RENDERSTATE;
 
 CONTROLSTATE g_ControlState = ROTATE;
+RENDERSTATE g_RenderState = POINTS;
 
 /* state of the world */
 float g_vLandRotate[3] = {0.0, 0.0, 0.0};
@@ -60,7 +62,7 @@ void myinit()
 {
     /* setup gl view here */
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glViewport(0, 0, 840, 480);
+    //glViewport(0, 0, 640, 480);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     //double aspectRatio = (double)glutGet( GLUT_WINDOW_WIDTH )/glutGet( GLUT_WINDOW_HEIGHT );
@@ -73,7 +75,6 @@ void myinit()
     //glPointSize(6.0);
     //glEnable(GL_POINT_SMOOTH);
     glEnable(GL_DEPTH_TEST);            // enable depth buffering
-
 }
 
 void display()
@@ -82,14 +83,34 @@ void display()
     /* replace this code with your height field implementation */
     /* you may also want to precede it with your
      rotation/translation/scaling */
+    /*if (g_ControlState == ROTATE) {
+        glRotatef(1.0, g_vLandRotate[0], g_vLandRotate[1], g_vLandRotate[2]);
+    }*/
+    //glTranslated(0.0, 0.0, -1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < g_pHeightData->nx; ++i) {
-        for (int j = 0; j < g_pHeightData->ny; ++j) {
+    
+    if (g_RenderState == POINTS)
+    {
+        glBegin(GL_POINTS);
+    }
+    else if (g_RenderState == LINES)
+    {
+        glBegin(GL_LINES);
+    }
+    else if (g_RenderState == TRIANGLES)
+    {
+        glBegin(GL_TRIANGLES);
+    }
+    for (int i = 0; i < g_pHeightData->nx; ++i)
+    {
+        for (int j = 0; j < g_pHeightData->ny; ++j)
+        {
             int ch = PIC_PIXEL(g_pHeightData, i, j, 0) - 256; // z-axis value must be negative to fit in viewing volume
-            glVertex3i(i, j, ch);
+            glColor3f(0.5, (float)i/(float)g_pHeightData->nx, (float)j/(float)g_pHeightData->ny);
+            glVertex3i(i, j, ch); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
         }
     }
+    glEnd();
     /*glBegin(GL_POLYGON);
     glVertex3f(-0.5, -0.5, 0.0);
     glColor3f(0.0, 0.0, 1.0);
@@ -98,8 +119,6 @@ void display()
     glVertex3f(0.5, 0.5, 0.0);
     glColor3f(1.0, 1.0, 0.0);
     glVertex3f(0.5, -0.5, 0.0);*/
-    
-    glEnd();
     glutSwapBuffers();
 }
 
@@ -139,6 +158,7 @@ void mousedrag(int x, int y)
             {
                 g_vLandTranslate[2] += vMouseDelta[1]*0.01;
             }
+            glTranslatef(g_vLandTranslate[0], g_vLandTranslate[1], g_vLandTranslate[2]);
             break;
         case ROTATE:
             if (g_iLeftMouseButton)
@@ -150,6 +170,7 @@ void mousedrag(int x, int y)
             {
                 g_vLandRotate[2] += vMouseDelta[1];
             }
+            glRotatef(1.0, g_vLandRotate[0], g_vLandRotate[1], g_vLandRotate[2]);
             break;
         case SCALE:
             if (g_iLeftMouseButton)
@@ -161,6 +182,7 @@ void mousedrag(int x, int y)
             {
                 g_vLandScale[2] *= 1.0-vMouseDelta[1]*0.01;
             }
+            glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
             break;
     }
     g_vMousePos[0] = x;
@@ -204,6 +226,27 @@ void mousebutton(int button, int state, int x, int y)
     
     g_vMousePos[0] = x;
     g_vMousePos[1] = y;
+}
+
+void keyboard(unsigned char c, int x, int y)
+{
+    switch (c) { // switch type of render view based on keyboard input
+        case 'p':
+            g_RenderState = POINTS;
+            break;
+        case 'l':
+            g_RenderState = LINES;
+            break;
+        case 't':
+            g_RenderState = TRIANGLES;
+            break;
+        case 's':
+            glTranslatef(0.0, 0.0, -100.0);
+            break;
+        case 27:
+            exit(0);
+            break;
+    }
 }
 
 int main (int argc, char ** argv)
@@ -253,6 +296,8 @@ int main (int argc, char ** argv)
     glutPassiveMotionFunc(mouseidle);
     /* callback for mouse button changes */
     glutMouseFunc(mousebutton);
+    /* callback for keyboard press */
+    glutKeyboardFunc(keyboard);
     
     /* do initialization */
     myinit();
