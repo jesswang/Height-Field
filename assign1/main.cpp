@@ -68,11 +68,11 @@ void myinit()
     //double aspectRatio = (double)glutGet( GLUT_WINDOW_WIDTH )/glutGet( GLUT_WINDOW_HEIGHT );
     //glOrtho(-aspectRatio, aspectRatio, -1.0, 1.0, -1.0, 1.0); // prevents square in starter code from stretching out
     //glFrustum(0.0, 1.0, 0.0, 1.0, 0.01, 1000.0);
-    gluPerspective(10.0, 640.0/480.0, 0.01, 1000.0);
+    gluPerspective(60.0, 640.0/480.0, 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
-    //glPointSize(6.0);
+    gluLookAt(-200.0, -200.0, 500.0, 0.0, 0.0, 100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
+    //glPointSize(2.0);
     //glEnable(GL_POINT_SMOOTH);
     glEnable(GL_DEPTH_TEST);            // enable depth buffering
 }
@@ -99,7 +99,7 @@ void display()
     }
     else if (g_RenderState == TRIANGLES)
     {
-        glBegin(GL_TRIANGLES);
+        glBegin(GL_TRIANGLE_STRIP);
     }
     for (int i = 0; i < g_pHeightData->nx; ++i)
     {
