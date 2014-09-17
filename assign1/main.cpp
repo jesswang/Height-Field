@@ -65,16 +65,62 @@ void myinit()
     //glViewport(0, 0, 640, 480);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //double aspectRatio = (double)glutGet( GLUT_WINDOW_WIDTH )/glutGet( GLUT_WINDOW_HEIGHT );
-    //glOrtho(-aspectRatio, aspectRatio, -1.0, 1.0, -1.0, 1.0); // prevents square in starter code from stretching out
-    //glFrustum(0.0, 1.0, 0.0, 1.0, 0.01, 1000.0);
     gluPerspective(60.0, 640.0/480.0, 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(-200.0, -200.0, 500.0, 0.0, 0.0, 100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
+    gluLookAt(-100.0, -100.0, 300.0, 0.0, 0.0, 100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
     //glPointSize(2.0);
     //glEnable(GL_POINT_SMOOTH);
     glEnable(GL_DEPTH_TEST);            // enable depth buffering
+}
+
+void drawPoints()
+{
+    glBegin(GL_POINTS);
+    for (int i = 0; i < g_pHeightData->ny; ++i)
+    {
+        for (int j = 0; j < g_pHeightData->nx; ++j)
+        {
+            int z = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
+            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
+            glVertex3i(j, i, z); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
+        }
+    }
+    glEnd();
+}
+
+void drawLines()
+{
+    for (int i = 0; i < g_pHeightData->ny-1; ++i)
+    {
+        glBegin(GL_LINE_STRIP);
+        for (int j = 0; j < g_pHeightData->nx; ++j)
+        {
+            int z1 = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
+            int z2 = PIC_PIXEL(g_pHeightData, j, i+1, 0) - 256;
+            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
+            glVertex3i(j, i, z1); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
+            glVertex3i(j, i+1, z2); 
+        }
+        glEnd();
+    }
+}
+
+void drawTriangles()
+{
+    for (int i = 0; i < g_pHeightData->ny-1; ++i)
+    {
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int j = 0; j < g_pHeightData->nx; ++j)
+        {
+            int z1 = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
+            int z2 = PIC_PIXEL(g_pHeightData, j, i+1, 0) - 256;
+            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
+            glVertex3i(j, i, z1); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
+            glVertex3i(j, i+1, z2);
+        }
+        glEnd();
+    }
 }
 
 void display()
@@ -83,34 +129,21 @@ void display()
     /* replace this code with your height field implementation */
     /* you may also want to precede it with your
      rotation/translation/scaling */
-    /*if (g_ControlState == ROTATE) {
-        glRotatef(1.0, g_vLandRotate[0], g_vLandRotate[1], g_vLandRotate[2]);
-    }*/
-    //glTranslated(0.0, 0.0, -1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if (g_RenderState == POINTS)
     {
-        glBegin(GL_POINTS);
+        drawPoints();
     }
     else if (g_RenderState == LINES)
     {
-        glBegin(GL_LINES);
+        
+        drawLines();
     }
     else if (g_RenderState == TRIANGLES)
     {
-        glBegin(GL_TRIANGLE_STRIP);
+        drawTriangles();
     }
-    for (int i = 0; i < g_pHeightData->nx; ++i)
-    {
-        for (int j = 0; j < g_pHeightData->ny; ++j)
-        {
-            int ch = PIC_PIXEL(g_pHeightData, i, j, 0) - 256; // z-axis value must be negative to fit in viewing volume
-            glColor3f(0.5, (float)i/(float)g_pHeightData->nx, (float)j/(float)g_pHeightData->ny);
-            glVertex3i(i, j, ch); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
-        }
-    }
-    glEnd();
     /*glBegin(GL_POLYGON);
     glVertex3f(-0.5, -0.5, 0.0);
     glColor3f(0.0, 0.0, 1.0);
@@ -153,36 +186,40 @@ void mousedrag(int x, int y)
             {
                 g_vLandTranslate[0] += vMouseDelta[0]*0.01;
                 g_vLandTranslate[1] -= vMouseDelta[1]*0.01;
+                glTranslatef(g_vLandTranslate[0], g_vLandTranslate[1], 0.0);
             }
             if (g_iMiddleMouseButton)
             {
                 g_vLandTranslate[2] += vMouseDelta[1]*0.01;
+                glTranslatef(0.0, 0.0, g_vLandTranslate[2]);
             }
-            glTranslatef(g_vLandTranslate[0], g_vLandTranslate[1], g_vLandTranslate[2]);
             break;
         case ROTATE:
             if (g_iLeftMouseButton)
             {
-                g_vLandRotate[0] += vMouseDelta[1];
-                g_vLandRotate[1] += vMouseDelta[0];
+                g_vLandRotate[0] += vMouseDelta[1]*0.01;
+                g_vLandRotate[1] += vMouseDelta[0]*0.01;
+                glRotatef(g_vLandRotate[0], 1.0, 0.0, 0.0);
+                glRotatef(g_vLandRotate[1], 0.0, 1.0, 0.0);
             }
             if (g_iMiddleMouseButton)
             {
-                g_vLandRotate[2] += vMouseDelta[1];
+                g_vLandRotate[2] += vMouseDelta[1]*0.01;
+                glRotatef(g_vLandRotate[2], 0.0, 0.0, 1.0);
             }
-            glRotatef(1.0, g_vLandRotate[0], g_vLandRotate[1], g_vLandRotate[2]);
             break;
         case SCALE:
             if (g_iLeftMouseButton)
             {
                 g_vLandScale[0] *= 1.0+vMouseDelta[0]*0.01;
                 g_vLandScale[1] *= 1.0-vMouseDelta[1]*0.01;
+                glScalef(g_vLandScale[0], g_vLandScale[1], 1.0);
             }
             if (g_iMiddleMouseButton)
             {
                 g_vLandScale[2] *= 1.0-vMouseDelta[1]*0.01;
+                glScalef(1.0, 1.0, g_vLandScale[2]);
             }
-            glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
             break;
     }
     g_vMousePos[0] = x;
@@ -239,9 +276,6 @@ void keyboard(unsigned char c, int x, int y)
             break;
         case 't':
             g_RenderState = TRIANGLES;
-            break;
-        case 's':
-            glTranslatef(0.0, 0.0, -100.0);
             break;
         case 27:
             exit(0);
