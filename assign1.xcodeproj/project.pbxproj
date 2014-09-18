@@ -30,7 +30,7 @@
 
 /* Begin PBXFileReference section */
 		4C3FCCFC19B7CAFB00E72BCB /* assign1 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assign1; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C3FCCFF19B7CAFB00E72BCB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		4C3FCCFF19B7CAFB00E72BCB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../../../../../../Documents/School/CS420/assign1/assign1/main.cpp; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C3FCD0119B7CAFB00E72BCB /* assign1.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = assign1.1; sourceTree = "<group>"; };
 		4C3FCD0819B7CB4000E72BCB /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		4C3FCD0919B7CB4000E72BCB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
