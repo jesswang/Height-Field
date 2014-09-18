@@ -9,6 +9,7 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #include <pic.h>
+#include <iostream>
 
 int g_iMenuId;
 
@@ -32,30 +33,38 @@ float g_vLandScale[3] = {1.0, 1.0, 1.0};
 Pic * g_pHeightData;
 
 /* Write a screenshot to the specified filename */
-void saveScreenshot (char *filename)
-{
+void saveScreenshot (char *filename){
     int i, j;
+    
     Pic *in = NULL;
+    Pic *out = NULL;
     
     if (filename == NULL)
         return;
     
-    /* Allocate a picture buffer */
     in = pic_alloc(640, 480, 3, NULL);
-    
+    out = pic_alloc(640, 480, 3, NULL);
     printf("File to save to: %s\n", filename);
     
-    for (i=479; i>=0; i--) {
-        glReadPixels(0, 479-i, 640, 1, GL_RGB, GL_UNSIGNED_BYTE,
-                     &in->pix[i*in->nx*in->bpp]);
+    glReadPixels(0, 0, 640, 480, GL_RGB, GL_UNSIGNED_BYTE, &in->pix[0]);
+    
+    for ( int j=0; j<480; j++ ) {
+        for ( int i=0; i<640; i++ ) {
+            PIC_PIXEL(out, i, j, 0) = PIC_PIXEL(in, i, 480-1-j, 0);
+            PIC_PIXEL(out, i, j, 1) = PIC_PIXEL(in, i, 480-1-j, 1);
+            PIC_PIXEL(out, i, j, 2) = PIC_PIXEL(in, i, 480-1-j, 2);
+        } 
     }
     
-    if (jpeg_write(filename, in))
-        printf("File saved Successfully\n");
-    else
+    if (jpeg_write(filename, out))       
+        printf("File saved Successfully\n");   
+    
+    else       
         printf("Error in Saving\n");
     
-    pic_free(in);
+    pic_free(in);    
+    pic_free(out);
+    
 }
 
 void myinit()
@@ -82,28 +91,11 @@ void drawPoints()
         for (int j = 0; j < g_pHeightData->nx; ++j)
         {
             int z = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
-            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
+            glColor3f(1.0, (float)z/255.0*-1, 0.5);
             glVertex3i(j, i, z); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
         }
     }
     glEnd();
-}
-
-void drawLines()
-{
-    for (int i = 0; i < g_pHeightData->ny-1; ++i)
-    {
-        glBegin(GL_LINE_STRIP);
-        for (int j = 0; j < g_pHeightData->nx; ++j)
-        {
-            int z1 = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
-            int z2 = PIC_PIXEL(g_pHeightData, j, i+1, 0) - 256;
-            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
-            glVertex3i(j, i, z1); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
-            glVertex3i(j, i+1, z2); 
-        }
-        glEnd();
-    }
 }
 
 void drawTriangles()
@@ -115,12 +107,21 @@ void drawTriangles()
         {
             int z1 = PIC_PIXEL(g_pHeightData, j, i, 0) - 256; // z-axis value must be negative to fit in viewing volume
             int z2 = PIC_PIXEL(g_pHeightData, j, i+1, 0) - 256;
-            glColor3f(0.5, (float)j/(float)g_pHeightData->ny, (float)i/(float)g_pHeightData->nx);
+            glColor3f(1.0, (float)z1/255.0*-1, 0.5);
             glVertex3i(j, i, z1); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
             glVertex3i(j, i+1, z2);
         }
         glEnd();
     }
+}
+
+void takeScreenshots()
+{
+    std::string name = "screenshots/000.jpg";
+    char* file = new char[26];
+    strcpy(file, name.c_str());
+    saveScreenshot(file);
+    delete [] file;
 }
 
 void display()
@@ -137,11 +138,12 @@ void display()
     }
     else if (g_RenderState == LINES)
     {
-        
-        drawLines();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        drawTriangles();
     }
     else if (g_RenderState == TRIANGLES)
     {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         drawTriangles();
     }
     /*glBegin(GL_POLYGON);
@@ -276,6 +278,9 @@ void keyboard(unsigned char c, int x, int y)
             break;
         case 't':
             g_RenderState = TRIANGLES;
+            break;
+        case 's':
+            takeScreenshots();
             break;
         case 27:
             exit(0);
