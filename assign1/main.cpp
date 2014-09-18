@@ -141,7 +141,7 @@ static void takeScreenshots(int num)
     delete [] file;
     
     ++num;
-    glutTimerFunc(500, takeScreenshots, num); // callback is triggered every 500 ms
+    glutTimerFunc(100, takeScreenshots, num); // callback is triggered every 500 ms
 }
 
 void display()
