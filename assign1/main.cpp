@@ -10,6 +10,7 @@
 #include <GLUT/glut.h>
 #include <pic.h>
 #include <iostream>
+#include <sstream>
 
 int g_iMenuId;
 
@@ -77,7 +78,7 @@ void myinit()
     gluPerspective(60.0, 640.0/480.0, 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(-100.0, -100.0, 300.0, 0.0, 0.0, 100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
+    gluLookAt(-200.0, -200.0, 0.0, 0.0, 0.0, -100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
     //glPointSize(2.0);
     //glEnable(GL_POINT_SMOOTH);
     glEnable(GL_DEPTH_TEST);            // enable depth buffering
@@ -109,19 +110,38 @@ void drawTriangles()
             int z2 = PIC_PIXEL(g_pHeightData, j, i+1, 0) - 256;
             glColor3f(1.0, (float)z1/255.0*-1, 0.5);
             glVertex3i(j, i, z1); // for each pixel in the image, create a vertex with a z-axis value specified by its grayscale level
-            glVertex3i(j, i+1, z2);
+            glColor3f(1.0, (float)z2/255.0*-1, 0.5);
+            glVertex3i(j, i+1, z2); // create vertex at position directly below create tri-strip
         }
         glEnd();
     }
 }
 
-void takeScreenshots()
+static void takeScreenshots(int num)
 {
-    std::string name = "screenshots/000.jpg";
-    char* file = new char[26];
-    strcpy(file, name.c_str());
+    std::stringstream s;
+    if (num < 100)
+    {
+        if (num < 10)
+        {
+            s << "screenshots/00" << num << ".jpg";
+        }
+        else
+        {
+            s << "screenshots/0" << num << ".jpg";
+        }
+    }
+    else
+    {
+        s << "screenshots/" << num << ".jpg";
+    }
+    char* file = new char[19];
+    strcpy(file, s.str().c_str());
     saveScreenshot(file);
     delete [] file;
+    
+    ++num;
+    glutTimerFunc(500, takeScreenshots, num);
 }
 
 void display()
@@ -131,6 +151,7 @@ void display()
     /* you may also want to precede it with your
      rotation/translation/scaling */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glRotatef(0.1, 0.0, 0.0, 1.0);
     
     if (g_RenderState == POINTS)
     {
@@ -280,7 +301,7 @@ void keyboard(unsigned char c, int x, int y)
             g_RenderState = TRIANGLES;
             break;
         case 's':
-            takeScreenshots();
+            takeScreenshots(140);
             break;
         case 27:
             exit(0);
