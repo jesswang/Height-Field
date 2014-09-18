@@ -78,7 +78,7 @@ void myinit()
     gluPerspective(60.0, 640.0/480.0, 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(-200.0, -200.0, 0.0, 0.0, 0.0, -100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window
+    gluLookAt(-200.0, -200.0, 0.0, 0.0, 0.0, -100.0, 0.0, 0.0, 1.0); // adjust camera position so that object appears in center of window with the z-axis facing up
     //glPointSize(2.0);
     //glEnable(GL_POINT_SMOOTH);
     glEnable(GL_DEPTH_TEST);            // enable depth buffering
@@ -141,30 +141,25 @@ static void takeScreenshots(int num)
     delete [] file;
     
     ++num;
-    glutTimerFunc(500, takeScreenshots, num);
+    glutTimerFunc(500, takeScreenshots, num); // callback is triggered every 500 ms
 }
 
 void display()
 {
-    /* draw 1x1 cube about origin */
-    /* replace this code with your height field implementation */
-    /* you may also want to precede it with your
-     rotation/translation/scaling */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glRotatef(0.1, 0.0, 0.0, 1.0);
-    
+    glPushMatrix();
     if (g_RenderState == POINTS)
     {
         drawPoints();
     }
     else if (g_RenderState == LINES)
     {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wire frame view
         drawTriangles();
     }
     else if (g_RenderState == TRIANGLES)
     {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // solid object view
         drawTriangles();
     }
     /*glBegin(GL_POLYGON);
@@ -175,6 +170,8 @@ void display()
     glVertex3f(0.5, 0.5, 0.0);
     glColor3f(1.0, 1.0, 0.0);
     glVertex3f(0.5, -0.5, 0.0);*/
+    glPopMatrix();
+    glRotatef(0.1, 0.0, 0.0, 1.0); // continuously rotate about the z-axis
     glutSwapBuffers();
 }
 
@@ -209,12 +206,12 @@ void mousedrag(int x, int y)
             {
                 g_vLandTranslate[0] += vMouseDelta[0]*0.01;
                 g_vLandTranslate[1] -= vMouseDelta[1]*0.01;
-                glTranslatef(g_vLandTranslate[0], g_vLandTranslate[1], 0.0);
+                glTranslatef(g_vLandTranslate[0], g_vLandTranslate[1], 0.0); // translate w/ respect to x- and y- axes
             }
             if (g_iMiddleMouseButton)
             {
                 g_vLandTranslate[2] += vMouseDelta[1]*0.01;
-                glTranslatef(0.0, 0.0, g_vLandTranslate[2]);
+                glTranslatef(0.0, 0.0, g_vLandTranslate[2]); // translate w/ respect to z-axis
             }
             break;
         case ROTATE:
@@ -222,13 +219,13 @@ void mousedrag(int x, int y)
             {
                 g_vLandRotate[0] += vMouseDelta[1]*0.01;
                 g_vLandRotate[1] += vMouseDelta[0]*0.01;
-                glRotatef(g_vLandRotate[0], 1.0, 0.0, 0.0);
-                glRotatef(g_vLandRotate[1], 0.0, 1.0, 0.0);
+                glRotatef(g_vLandRotate[0], 1.0, 0.0, 0.0); // rotate about x-axis
+                glRotatef(g_vLandRotate[1], 0.0, 1.0, 0.0); // rotate about y-axis
             }
             if (g_iMiddleMouseButton)
             {
                 g_vLandRotate[2] += vMouseDelta[1]*0.01;
-                glRotatef(g_vLandRotate[2], 0.0, 0.0, 1.0);
+                glRotatef(g_vLandRotate[2], 0.0, 0.0, 1.0); // rotate about z-axis
             }
             break;
         case SCALE:
@@ -236,12 +233,12 @@ void mousedrag(int x, int y)
             {
                 g_vLandScale[0] *= 1.0+vMouseDelta[0]*0.01;
                 g_vLandScale[1] *= 1.0-vMouseDelta[1]*0.01;
-                glScalef(g_vLandScale[0], g_vLandScale[1], 1.0);
+                glScalef(g_vLandScale[0], g_vLandScale[1], 1.0); // scale w/ respect to x- and y- axes
             }
             if (g_iMiddleMouseButton)
             {
                 g_vLandScale[2] *= 1.0-vMouseDelta[1]*0.01;
-                glScalef(1.0, 1.0, g_vLandScale[2]);
+                glScalef(1.0, 1.0, g_vLandScale[2]); // scale w/ respect to z-axis
             }
             break;
     }
@@ -301,9 +298,9 @@ void keyboard(unsigned char c, int x, int y)
             g_RenderState = TRIANGLES;
             break;
         case 's':
-            takeScreenshots(140);
+            takeScreenshots(0);
             break;
-        case 27:
+        case 27: // ESC key
             exit(0);
             break;
     }
